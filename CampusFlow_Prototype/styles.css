@@ -656,6 +656,16 @@ tbody tr:hover {
   display: none !important;
 }
 
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 1.5rem;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .main-content {
     padding: 1.5rem 1rem;
@@ -665,8 +675,14 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+
   .navbar {
     padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .navbar-brand {
@@ -675,10 +691,13 @@ tbody tr:hover {
 
   .nav-links {
     gap: 2px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .nav-link {
     padding: 0.5rem;
+    font-size: 0.8125rem;
   }
 
   .toast-container {
@@ -698,5 +717,41 @@ tbody tr:hover {
 
   h1 {
     font-size: 2rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .main-content {
+    max-width: 1400px;
+    padding: 2.5rem 2rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media print {
+  .navbar,
+  .toast-container,
+  .loading-overlay,
+  .skip-link,
+  .theme-toggle {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+
+  .main-content {
+    max-width: 100%;
+    padding: 0;
   }
 }

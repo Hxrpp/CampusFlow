@@ -7,15 +7,64 @@ var state = {
   searchQuery: ''
 };
 
+/* ---- Persistence ---- */
+const STORAGE_KEY = 'campusflow-data';
+
+function saveData() {
+  var data = {
+    users: users,
+    nextUserId: nextUserId,
+    spaces: spaces,
+    bookings: bookings
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    // localStorage cheio ou indisponível — ignorar
+  }
+}
+
+function loadData() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      var data = JSON.parse(raw);
+      users.length = 0;
+      Array.prototype.push.apply(users, data.users);
+      nextUserId = data.nextUserId;
+      spaces.length = 0;
+      Array.prototype.push.apply(spaces, data.spaces);
+      bookings.length = 0;
+      Array.prototype.push.apply(bookings, data.bookings);
+      return true;
+    }
+  } catch (e) {
+    // dados corrompidos — ignorar e usar defaults
+  }
+  return false;
+}
+
+function resetData() {
+  localStorage.removeItem(STORAGE_KEY);
+  users.length = 0;
+  Array.prototype.push.apply(users, defaultUsers);
+  nextUserId = 3;
+  spaces.length = 0;
+  Array.prototype.push.apply(spaces, defaultSpaces);
+  bookings.length = 0;
+  bookings.push({ id: 1, userId: 1, spaceId: 2, date: '2026-05-25', time: '14:00', status: 'approved' });
+  bookings.push({ id: 2, userId: 2, spaceId: 3, date: '2026-05-26', time: '10:00', status: 'pending' });
+  render();
+  showToast('Dados restaurados para o padrão.');
+}
+
 /* ---- Mock Data ---- */
-const users = [
+const defaultUsers = [
   { id: 1, name: 'Estudante Lucas', email: 'lucas@campus.com', password: '123', role: 'student' },
   { id: 2, name: 'Admin Mariana', email: 'admin@admin.com', password: '123', role: 'admin' }
 ];
 
-let nextUserId = 3;
-
-const spaces = [
+const defaultSpaces = [
   { id: 1, name: 'Sala de Estudo A', type: 'Estudo', capacity: 4, available: true },
   { id: 2, name: 'Laboratório de Informática 1', type: 'Laboratório', capacity: 20, available: false },
   { id: 3, name: 'Auditório Principal', type: 'Auditório', capacity: 100, available: true },
@@ -23,10 +72,10 @@ const spaces = [
   { id: 5, name: 'Sala de Reunião 1', type: 'Reunião', capacity: 8, available: true }
 ];
 
-let bookings = [
-  { id: 1, userId: 1, spaceId: 2, date: '2026-05-25', time: '14:00', status: 'approved' },
-  { id: 2, userId: 2, spaceId: 3, date: '2026-05-26', time: '10:00', status: 'pending' }
-];
+let users = [];
+let nextUserId;
+let spaces = [];
+let bookings = [];
 
 /* ---- Utilities ---- */
 function announce(message) {
@@ -182,6 +231,11 @@ views['register'] = function () {
           '<div class="form-group">' +
             '<label for="reg-email" class="form-label">E-mail</label>' +
             '<input type="email" id="reg-email" class="form-control" required>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label for="reg-password" class="form-label">Senha</label>' +
+            '<input type="password" id="reg-password" class="form-control" minlength="3" required>' +
+            '<span id="reg-password-error" class="error-message">Mínimo de 3 caracteres.</span>' +
           '</div>' +
           '<div class="form-group">' +
             '<label for="role" class="form-label">Perfil</label>' +
@@ -509,11 +563,21 @@ function handleRegister(e) {
   e.preventDefault();
   var name = document.getElementById('name').value;
   var email = document.getElementById('reg-email').value;
+  var password = document.getElementById('reg-password').value;
+  var passwordError = document.getElementById('reg-password-error');
   var role = document.getElementById('role').value;
 
-  if (!name || !email) {
+  if (!name || !email || !password) {
     showToast('Preencha todos os campos.', 'error');
     return;
+  }
+
+  if (password.length < 3) {
+    passwordError.classList.add('show');
+    showToast('A senha deve ter no mínimo 3 caracteres.', 'error');
+    return;
+  } else {
+    passwordError.classList.remove('show');
   }
 
   if (users.find(function (u) { return u.email === email; })) {
@@ -524,9 +588,10 @@ function handleRegister(e) {
   showLoading(true);
 
   setTimeout(function () {
-    var newUser = { id: nextUserId++, name: name, email: email, password: '123', role: role };
+    var newUser = { id: nextUserId++, name: name, email: email, password: password, role: role };
     users.push(newUser);
     state.currentUser = { id: newUser.id, name: newUser.name, role: newUser.role };
+    saveData();
     var route = role === 'admin' ? 'admin-dashboard' : 'dashboard';
     navigateTo(route);
     showLoading(false);
@@ -555,6 +620,7 @@ function handleBook(e, spaceId) {
       time: time,
       status: 'pending'
     });
+    saveData();
     navigateTo('my-bookings');
     showLoading(false);
     showToast('Reserva solicitada com sucesso!');
@@ -564,6 +630,7 @@ function handleBook(e, spaceId) {
 function cancelBooking(id) {
   if (confirm('Cancelar esta reserva?')) {
     bookings = bookings.filter(function (b) { return b.id !== id; });
+    saveData();
     render();
     showToast('Reserva cancelada.');
   }
@@ -573,6 +640,7 @@ function approveBooking(id) {
   var booking = bookings.find(function (b) { return b.id === id; });
   if (booking) {
     booking.status = 'approved';
+    saveData();
     render();
     showToast('Reserva aprovada!');
   }
@@ -617,9 +685,24 @@ function render() {
 
 /* ---- Init ---- */
 window.addEventListener('DOMContentLoaded', function () {
+  /* Inicializa arrays vazios */
+  users = [];
+  spaces = [];
+  bookings = [];
+
+  /* Tenta carregar dados salvos; se falhar, usa defaults */
+  if (!loadData()) {
+    Array.prototype.push.apply(users, defaultUsers);
+    Array.prototype.push.apply(spaces, defaultSpaces);
+    bookings.push({ id: 1, userId: 1, spaceId: 2, date: '2026-05-25', time: '14:00', status: 'approved' });
+    bookings.push({ id: 2, userId: 2, spaceId: 3, date: '2026-05-26', time: '10:00', status: 'pending' });
+    nextUserId = 3;
+  }
+
   applyTheme();
   render();
 
+  /* Skip link */
   var skipLink = document.querySelector('.skip-link');
   if (skipLink) {
     skipLink.addEventListener('click', function (e) {
@@ -631,4 +714,25 @@ window.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+
+  /* Tecla Escape fecha toasts */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var container = document.getElementById('toast-container');
+      if (container) container.innerHTML = '';
+    }
+  });
+
+  /* Ctrl+K ou Ctrl+/ foca na busca de espaços */
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'k' || e.key === '/') && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      var searchInput = document.querySelector('input[aria-label="Buscar"]');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+        announce('Busca de espaços ativada.');
+      }
+    }
+  });
 });
