@@ -698,7 +698,7 @@ views['admin-dashboard'] = function () {
       '<p>Visão geral do campus. ' + totalUsers + ' usuário' + (totalUsers !== 1 ? 's' : '') + ' cadastrado' + (totalUsers !== 1 ? 's' : '') + '.</p>' +
     '</div>' +
     '<div class="grid grid-cols-4 mb-4">' +
-      '<div class="card text-center">' +
+      '<div class="card text-center card-accent">' +
         '<h2 style="color:var(--primary);margin-bottom:0.25rem;font-size:1.75rem">' + spaces.length + '</h2>' +
         '<p style="margin-bottom:0;font-size:0.8125rem;color:var(--text-tertiary)">Espaços</p>' +
       '</div>' +
@@ -706,12 +706,12 @@ views['admin-dashboard'] = function () {
         '<h2 style="color:var(--warning);margin-bottom:0.25rem;font-size:1.75rem">' + pending + '</h2>' +
         '<p style="margin-bottom:0;font-size:0.8125rem;color:var(--text-tertiary)">' + (pending === 1 ? 'Pendente' : 'Pendentes') + '</p>' +
       '</div>' +
-      '<div class="card text-center">' +
+      '<div class="card text-center card-accent-success">' +
         '<h2 style="color:var(--success);margin-bottom:0.25rem;font-size:1.75rem">' + bookings.length + '</h2>' +
         '<p style="margin-bottom:0;font-size:0.8125rem;color:var(--text-tertiary)">Total de reservas</p>' +
       '</div>' +
-      '<div class="card text-center">' +
-        '<h2 style="color:var(--primary);margin-bottom:0.25rem;font-size:1.75rem">' + todayCount + '</h2>' +
+      '<div class="card text-center card-accent-info">' +
+        '<h2 style="color:#38bdf8;margin-bottom:0.25rem;font-size:1.75rem">' + todayCount + '</h2>' +
         '<p style="margin-bottom:0;font-size:0.8125rem;color:var(--text-tertiary)">Reservas hoje</p>' +
       '</div>' +
     '</div>' +

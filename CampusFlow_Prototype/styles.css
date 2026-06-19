@@ -650,6 +650,14 @@ tbody tr:hover {
   border-left: 4px solid var(--warning);
 }
 
+.card-accent-success {
+  border-left: 4px solid var(--success);
+}
+
+.card-accent-info {
+  border-left: 4px solid #38bdf8;
+}
+
 .card-interactive:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: var(--shadow-lg);
